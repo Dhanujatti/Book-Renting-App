@@ -7,6 +7,6 @@ rentRoute.get("/all",authMiddleware,rentController.getAll)
 rentRoute.get("/single/:id",authMiddleware,rentController.getSingle)
 rentRoute.post("/create",authMiddleware,authAdmin,rentController.create)
 rentRoute.patch("/update/:id",authMiddleware,authAdmin,rentController.update)
-rentRoute.delete("/delete/:id",authMiddleware,authAdmin,rentController.delete)
+rentRoute.delete("/delete/:id/book/:bookId",authMiddleware,authAdmin,rentController.delete)
 
 module.exports = rentRoute

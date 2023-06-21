@@ -12,6 +12,9 @@ const rentController = {
             return res.status(500).json({msg: err.message})
         }
     },
+    getByUser: async (req,res) => {
+
+    },
     getSingle: async (req,res) =>{
         try {
             let id = req.params.id
@@ -19,7 +22,8 @@ const rentController = {
             
             if(!data)
                 return res.status(404).json({msg: 'Rent id not found'})
-            // res.json({msg:'get single called'})
+                res.status(200).json({rent: data})
+                // res.json({msg:'get single called'})
         } catch (err) {
             return res.status(500).json({msg: err.message})
         }
@@ -42,10 +46,7 @@ const rentController = {
                 if(!user)
                 return res.status(404).json({msg: 'User details not found'})
 
-                //update the number of copy and rented copies
-                if(book.numberOfCopy === 0) {
-                    return res.status(400).json({msg: 'No more copies available for Rent'})
-                } 
+    
 
                 let newRent = {
                     ...req.body,
@@ -89,9 +90,20 @@ const rentController = {
         try {
             let id = req.params.id
 
+            let bookId = req.params.bookId
+
             let extRent = await Rent.findById({_id: id})
             if(!extRent)
                 return res.status(404).json({msg:`Requested Rent id not found`})
+
+            let book = await Book.findById({_id: bookId})
+          
+            if(book) {
+           let rcopy = book.rentedCopies - 1;
+            let nCopy = book.numberOfCopy +1;
+
+            await Book.findByIdAndUpdate({_id: bookId}, {rentedCopies:rcopy,numberOfCopy:nCopy})
+           }
 
                 await Rent.findByIdAndDelete({_id:id})
                     return res.status(200).json({msg:`Rent details deleted successfully`})

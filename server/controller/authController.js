@@ -1,4 +1,5 @@
 const user = require('../model/authModel')
+const rent = require('../model/rentModel')
 const bcrypt = require('bcryptjs')
 const { createLoginToken} = require('../util/token')
 const jwt = require('jsonwebtoken')
@@ -106,6 +107,61 @@ const authController = {
             // res.json({cToken})
         }catch(err) {
             res.status(500).json({msg:err.message})
+        }
+    },
+    allUsers: async( req,res) => {
+        try {
+            const data = await user.find()
+
+            const users = data.filter(item => item.role !== "superadmin")
+            
+            return res.status(200).json({ length: users.length, users})
+        } catch (err) {
+            return res.status(500).json({ msg: err.message})
+        }
+    },
+    blockUser: async(req, res) => {
+        try {
+            const id = req.params.id
+
+            const users = await user.findById({_id : id})
+            if(!users)
+                return res.status(400).json({msg: `requested user id not found`})
+
+            await user.findByIdAndUpdate({_id : id},{
+                isActive : !user.isActive
+            })
+            if(user.isActive === true) {
+                
+                return res.status(200).json({msg: `user blocked successfully`})
+            } else{
+                return res.status(200).json({msg: `user un-blocked successfully`})
+
+            }
+        } catch (err) {
+            return res.status(500).json({msg: err.message})
+        }
+    },
+    deleteUser: async(req, res) => {
+        try {
+            const id = req.params.id
+
+            const users = await user.findById({_id : id})
+            if(!users)
+                return res.status(404).json({msg: `requested user id not found`})
+
+            const data = await rent.findOne({userId: id})
+            
+            if(data){
+                return res.status(400).json({msg: 'User have pending rented books. Cannot delete user' })
+
+            } 
+            
+                await user.findByIdAndDelete({_id: id})
+            
+                return res.status(200).json({msg: `user deleted successfully`})
+        } catch (err) {
+            return res.status(500).json({msg: err.message})
         }
     }
 }
